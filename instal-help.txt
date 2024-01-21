@@ -1,4 +1,5 @@
-    npm i use-debounce
+npm run lint       
+npm i use-debounce
 
 npm install next-auth@beta
 openssl rand -base64 32
