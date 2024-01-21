@@ -8,9 +8,15 @@ import {
   User,
   Revenue,
 } from './definitions';
-import { formatCurrency } from './utils';
+import { formatCurrency as prdel } from './utils';
 
+import { unstable_noStore as noStore  } from 'next/cache';
+
+const invoiceCountPromise = sql`SELECT COUNT(*) FROM invoices`;
+const customerCountPromise = sql`SELECT COUNT(*) FROM customers`;
 export async function fetchRevenue() {
+  noStore();
+  
   // Add noStore() here to prevent the response from being cached.
   // This is equivalent to in fetch(..., {cache: 'no-store'}).
 
@@ -20,6 +26,9 @@ export async function fetchRevenue() {
 
     // console.log('Fetching revenue data...');
     // await new Promise((resolve) => setTimeout(resolve, 3000));
+    console.log("Fetching data .....")
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    console.log('Data se nacetly  za  vteriny ');
 
     const data = await sql<Revenue>`SELECT * FROM revenue`;
 
@@ -33,6 +42,7 @@ export async function fetchRevenue() {
 }
 
 export async function fetchLatestInvoices() {
+  noStore();
   try {
     const data = await sql<LatestInvoiceRaw>`
       SELECT invoices.amount, customers.name, customers.image_url, customers.email, invoices.id
@@ -43,8 +53,9 @@ export async function fetchLatestInvoices() {
 
     const latestInvoices = data.rows.map((invoice) => ({
       ...invoice,
-      amount: formatCurrency(invoice.amount),
+      amount: prdel(invoice.amount),
     }));
+    //console.log(latestInvoices);
     return latestInvoices;
   } catch (error) {
     console.error('Database Error:', error);
@@ -53,6 +64,7 @@ export async function fetchLatestInvoices() {
 }
 
 export async function fetchCardData() {
+  noStore();
   try {
     // You can probably combine these into a single SQL query
     // However, we are intentionally splitting them to demonstrate
@@ -72,8 +84,8 @@ export async function fetchCardData() {
 
     const numberOfInvoices = Number(data[0].rows[0].count ?? '0');
     const numberOfCustomers = Number(data[1].rows[0].count ?? '0');
-    const totalPaidInvoices = formatCurrency(data[2].rows[0].paid ?? '0');
-    const totalPendingInvoices = formatCurrency(data[2].rows[0].pending ?? '0');
+    const totalPaidInvoices = prdel(data[2].rows[0].paid ?? '0');
+    const totalPendingInvoices = prdel(data[2].rows[0].pending ?? '0');
 
     return {
       numberOfCustomers,
@@ -87,7 +99,7 @@ export async function fetchCardData() {
   }
 }
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 9;
 export async function fetchFilteredInvoices(
   query: string,
   currentPage: number,
@@ -161,6 +173,7 @@ export async function fetchInvoiceById(id: string) {
       // Convert amount from cents to dollars
       amount: invoice.amount / 100,
     }));
+        console.log(invoice); // Invoice is an empty array []
 
     return invoice[0];
   } catch (error) {
@@ -170,6 +183,7 @@ export async function fetchInvoiceById(id: string) {
 }
 
 export async function fetchCustomers() {
+  noStore();
   try {
     const data = await sql<CustomerField>`
       SELECT
@@ -209,8 +223,8 @@ export async function fetchFilteredCustomers(query: string) {
 
     const customers = data.rows.map((customer) => ({
       ...customer,
-      total_pending: formatCurrency(customer.total_pending),
-      total_paid: formatCurrency(customer.total_paid),
+      total_pending: prdel(customer.total_pending),
+      total_paid: prdel(customer.total_paid),
     }));
 
     return customers;

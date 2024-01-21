@@ -1,0 +1,5 @@
+    npm i use-debounce
+
+npm install next-auth@beta
+openssl rand -base64 32
+DO6nzfNLYQSAMOcCTEBg2rH67GCPF3UwILUfo/dQAYc=
